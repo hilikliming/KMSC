@@ -14,21 +14,17 @@
 % num: ( |del_m'*K(Z_{T_m,B},y)|^2_F -|B'*K(Z_{B},y)|_F^2 )./
 % den: ( |K(Z_{T_m,B},y)'*del_m|^2_F - [K(Z_{T_m},y)'*T, ...
 %        K(Z_{B},y)'*B]*Lm^(-1)*[T'*K(Z_{Tm},y ; B'*K(Z_{B},y] )
-
-
 % Here
 % Lm = [ T'*K(Z_{T_m},Z_{T_m})*T    T'*K(Z_{T_m},Z_{B})*B ; ...
-%        B'*K(Z_{B},Z_{T_m})*T      B'*K(Z_{B},Z_{B})*B }
+%        B'*K(Z_{B},Z_{T_m})*T      B'*K(Z_{B},Z_{B})*B ]
 
-%del_m are ALL eigenvectors of K(Z_{T_m,B},Z_{T_m,B}) stacked side by side
+% del_m are ALL eigenvectors of K(Z_{T_m,B},Z_{T_m,B}) stacked side by side
 
 % Matrices B and T are the SIGNIFICANT eigenvectors of background centered 
 % K(Z_{B},Z_{B}) and K(Z_{T_m},Z_{T_m}) respectively...
 
 % Kc = (K-o_m*K-K*o_m + o_m*K*o_m
 % where o_m = ones(size(K))./size(K,1);
-rbf_var = 3;
-ktype = 'rbf';
 
 % For more compact notation use Z_{T_m} = T_m and Z_{B} = B
 % These are not the 'T' and B from above, these are the training samples of
@@ -39,11 +35,57 @@ ktype = 'rbf';
 % 2) K(T_m,  B)
 % 3) K(B ,T_m)
 % 4) K(B,B)
+% 5) [del_m ~, ~] = svd(K([T_m,B],[T_m,B]))
+% 6) Lm = [ T'*K(Z_{T_m},Z_{T_m})*T    T'*K(Z_{T_m},Z_{B})*B ; ...
+%           B'*K(Z_{B},Z_{T_m})*T      B'*K(Z_{B},Z_{B})*B ]
 
 % For each sample y we need to calculate:
 % 1) K([T_m,B],y)
 % 2) K(T_m,y)
 % 3) K(B,y)
-KNT = kernel(D_NT,D_NT,ktype,rbf_var);
-KB  = kernel(D_B,D_B,ktype,rbf_var);
-KT  = kernel(D_T,D_T,ktype,rbf_var);
+
+
+%% Importing Training Data
+dirm = 'F:\TestMATS';
+cd(dirm);
+load('dirMapDBFRME.mat');
+cd(home);
+dirMapDBFRMF = changePathRoot('F:',dirMapDBFRME);
+stops = 800;
+D      = struct([]);
+
+
+D(1).D = getTrainingSamples(dirMapDBFRMF(:,NT,:,:), stops);
+D(2).D = getTrainingSamples(dirMapDBFRMF(:, T,:,:), stops);
+D(3).D = getTrainingSamples(dirMapDBFRMF(:,BK,:,:), stops);
+
+
+%% Importing Testing Data
+stops = 800;
+
+realTarg = {'TARGET17','TARGET7','TARGET16','TARGET20','TARGET21',...
+    'TARGET25','TARGET29','TARGET9','TARGET28',...
+    'TARGET8'}; % 17,7,16 are NT, rest are T
+
+rngs = [0,10,0,0,0,0,0,0;    ...% 1)  Target 17 alcyl_2ft      NT
+        0,0,0,0,0,30,35,40;  ...% 2)  Target 7  alcyl_3ft      NT
+        0,0,15,0,25,30,0,0;  ...% 3)  Target 16 alpipe         NT
+        0,10,15,0,0,30,0,40; ...% 4)  Target 20 aluxo          T
+        0,10,15,0,25,30,0,0; ...% 5)  Target 21 ssuxo          T
+        5,0,15,20,25,0,0,0; ... % 6)  Target 25 bullet105air   T
+        0,0,15,20,0,0,35,0;  ...% 7)  Target 29 bullet105h20   T
+        0,10,15,20,0,0,35,0; ...% 8)  Target 9  howcapair      T
+        0,0,15,0,25,30,0,0;  ...% 9)  Target 28 howcaph20      T
+        5,0,0,0,25,30,0,40];   % 10) Target 8  hownocap        T   
+[Y, t_Y, r_Y ] = realACfetchTREX(realTarg,stops,aps,rngs);
+
+%% Running KMSC
+
+rbf_var = 3;
+ktype = 'rbf';
+
+
+
+%% Documenting Results
+
+
