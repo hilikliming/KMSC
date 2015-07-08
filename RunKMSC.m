@@ -50,3 +50,11 @@ ktype = 'rbf';
 % 3) K(B,y)
 
 
+%% Importing Training Data
+
+
+%% Running KMSC
+
+%% Documenting Results
+
+
