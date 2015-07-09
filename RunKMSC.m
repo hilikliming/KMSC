@@ -33,8 +33,8 @@
 % For any sample, to form the likelihood ratio, under mth hypothesis we need:
 % 1) K(T_m,T_m)
 % 2) K(T_m,  B)
-% 3) K(B ,T_m)
-% 4) K(B,B)
+% 3) K(B  ,T_m)
+% 4) K(B  ,  B)
 % 5) [del_m ~, ~] = svd(K([T_m,B],[T_m,B]))
 % 6) Lm = [ T'*K(Z_{T_m},Z_{T_m})*T    T'*K(Z_{T_m},Z_{B})*B ; ...
 %           B'*K(Z_{B},Z_{T_m})*T      B'*K(Z_{B},Z_{B})*B ]
@@ -46,18 +46,49 @@
 
 
 %% Importing Training Data
-dirm = 'F:\TestMATS';
-cd(dirm);
-load('dirMapDBFRME.mat');
+% dirm = 'F:\TestMATS';
+% cd(dirm);
+% load('dirMapDBFRME.mat');
+% cd(home);
+% dirMapDBFRMF = changePathRoot('F:',dirMapDBFRME);
+% stops = 800;
+% D      = struct([]);
+home = cd;
+above = '..\';
+
+cd(above);
+dirFRM  = 'DBFRM';
+mkdir(dirFRM);
+cd(dirFRM);dirFRM = cd;
+% Parameters for generateDatabaseLsas indicates environment conditions,
+% ranges, and target rotations to be modeled
+ranges = 10;%10:5:40;%9.5:0.5:10.5;
+%water and sediment sound speeds
+c_w = [1464,1530];
+c_s = [1694,1694];
+% rotations to model
+rots = [0:20:80,270:20:350];
+% environment parameters to model, water, sediment speed, interface elevation
+envs      = zeros(length(c_w),3);
+envs(:,1) = c_w;
+envs(:,2) = c_s;
+envs(:,3) = 3.8*ones(length(c_w),1);
+% which of the 7 .ffn's to model
+objs    = 1; 
+f_s     = 1e5;
+
+chirp.sigName  = 'TREXred.replica';%
+chirp.chirp = [1 31 f_s]; % start and end freq of chirp defines center and BW, last number is f_s
+runlen  = [20,800]; %length meters, stops
+
 cd(home);
-dirMapDBFRMF = changePathRoot('F:',dirMapDBFRME);
-stops = 800;
-D      = struct([]);
+dirMapDBFRM = generateDatabaseLsas(dirFRM,envs,ranges,rots,objs,chirp,runlen);
+cd(dirm);
+save('dirMapDBFRM.mat','dirMapDBFRM');
 
-
-D(1).D = getTrainingSamples(dirMapDBFRMF(:,NT,:,:), stops);
-D(2).D = getTrainingSamples(dirMapDBFRMF(:, T,:,:), stops);
-D(3).D = getTrainingSamples(dirMapDBFRMF(:,BK,:,:), stops);
+D(1).D = getTrainingSamples(dirMapDBFRM(:,NT,:,:), stops);
+D(2).D = getTrainingSamples(dirMapDBFRM(:, T,:,:), stops);
+D(3).D = getTrainingSamples(dirMapDBFRM(:,BK,:,:), stops);
 
 
 %% Importing Testing Data
@@ -76,16 +107,13 @@ rngs = [0,10,0,0,0,0,0,0;    ...% 1)  Target 17 alcyl_2ft      NT
         0,0,15,20,0,0,35,0;  ...% 7)  Target 29 bullet105h20   T
         0,10,15,20,0,0,35,0; ...% 8)  Target 9  howcapair      T
         0,0,15,0,25,30,0,0;  ...% 9)  Target 28 howcaph20      T
-        5,0,0,0,25,30,0,40];   % 10) Target 8  hownocap        T   
+        5,0,0,0,25,30,0,40];    % 10) Target 8  hownocap        T   
 [Y, t_Y, r_Y ] = realACfetchTREX(realTarg,stops,aps,rngs);
 
 %% Running KMSC
-
 rbf_var = 3;
 ktype = 'rbf';
 
 
-
 %% Documenting Results
-
 
