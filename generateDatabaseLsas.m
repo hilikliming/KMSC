@@ -55,7 +55,7 @@ function [dirMap] = generateDatabaseLsas(dir,envs,ranges, rots, obs, chirp, runl
     % FFN file parameters used in modeling with halfspace.exe
     % [Target name, radius, length, and radii ratio]
     objData(1,:)  = [0.1524 0.6 0.9];
-    objData(2,:)  = [0.1524 0.6 0.9];
+    objData(2,:)  = [0.1524 0.9 0.9];
     objData(3,:)  = [0.1619 0.9 0.9];
     objData(4,:)  = [0.05347 0.6 0.9];
     objData(5,:)  = [0.0525 0.6 0.9];
@@ -70,8 +70,8 @@ function [dirMap] = generateDatabaseLsas(dir,envs,ranges, rots, obs, chirp, runl
     objData(13,:) = [0.05347 0.6 0.9];
 
     %% Dummy Files to copy to directories which will be used in generating ACP's
-    ins = 'F:\Synth_AC_Tools\ins';
-    exes = 'F:\Synth_AC_Tools\exes';
+    ins = 'C:\Users\halljj2\Desktop\Synth_AC_Tools\ins';
+    exes = 'C:\Users\halljj2\Desktop\Synth_AC_Tools\exes';
     
 %     %% Populating ins with necessary LSAS run files to be copied by buildDirs
 %     cd(ins);

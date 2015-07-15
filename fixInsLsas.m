@@ -33,7 +33,7 @@ for e = 1:nenvs
                 if(strfind(sigName,'.replica'))
                     hs{6} = [num2str(floor(chirp(3)/1000)),' ', num2str(floor(2000*(sqrt(elv(e)^2+(ranges(r))^2))/c_w(e))), ' 20' ]; % Samp. rate, time offset, window len [kHz,ms,ms]
                     hs{7} = 'T'; % Transmitted signal in a data file
-                    hs{8} = ['F:\Synth_AC_Tools\ins\',char(sigName)];
+                    hs{8} = char(sigName);%['C:\Users\halljj2\Desktop\Synth_AC_Tools\ins\',char(sigName)];
                 else
                     hs{6} = [num2str(floor(chirp(3)/1000)),' ', num2str(floor(2000*(sqrt(elv(e)^2+(ranges(r))^2))/c_w(e))), ' 20' ]; % Samp. rate, time offset, window len [kHz,ms,ms]
                     hs{7} = 'F'; % Transmitted signal not in a data file
@@ -48,7 +48,7 @@ for e = 1:nenvs
                 % objtype indicates file, point, or sphere 
                 if(strcmp(char(objtype(o)),'file'))
                     hs{13} = 'file';
-                    hs{14} = ['F:\Synth_AC_Tools\ffn\', char(objs(o)), '.ffn'];%['..\..\..\..\..\ffn\' char(objs(o)) '.ffn'];
+                    hs{14} = ['C:\Users\halljj2\Desktop\Synth_AC_Tools\ffn\', char(objs(o)), '.ffn'];%['..\..\..\..\..\ffn\' char(objs(o)) '.ffn'];
                     hs{15} = 'fe';
                 else
                     hs{13} = char(objtype(o));
