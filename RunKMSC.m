@@ -56,36 +56,37 @@
 home = cd;
 above = '..\';
 
-% cd(above);
-% dirFRM  = 'DBFRM';
-% mkdir(dirFRM);
-% cd(dirFRM); dirFRM = cd;
-% % Parameters for generateDatabaseLsas indicates environment conditions,
-% % ranges, and target rotations to be modeled
-% ranges = 10;%9.5:0.5:10.5;
-% %water and sediment sound speeds
-% c_w = [1464,1530];
-% c_s = [1694,1694];
-% % rotations to model
-% rots = [0:20:80,270:20:350];
-% % environment parameters to model, water, sediment speed, interface elevation
-% envs      = zeros(length(c_w),3);
-% envs(:,1) = c_w;
-% envs(:,2) = c_s;
-% envs(:,3) = 3.8*ones(length(c_w),1);
-% % which of the 7 .ffn's to model
-% objs    = 1:10; 
-% f_s     = 1e5;
-% 
-% chirp.sigName  = 'TREXred.replica';%
-% chirp.chirp = [1 31 f_s]; % start and end freq of chirp defines center and BW, last number is f_s
-% runlen  = [20,800]; %length in meters, stops
-% 
-% cd(home);
-% dirMapDBFRM = generateDatabaseLsas(dirFRM,envs,ranges,rots,objs,chirp,runlen);
-% dirm = 'C:\Users\halljj2\Desktop\TESTMATS';
+cd(above);
+dirFRM  = 'DBFRM';
+mkdir(dirFRM);
+cd(dirFRM); dirFRM = cd;
+% Parameters for generateDatabaseLsas indicates environment conditions,
+% ranges, and target rotations to be modeled
+ranges = 10:5:40;
+%water and sediment sound speeds
+c_w = [1464,1530];
+c_s = [1694,1694];
+% rotations to model
+rots = [0:20:80,270:20:350];
+% environment parameters to model, water, sediment speed, interface elevation
+envs      = zeros(length(c_w),3);
+envs(:,1) = c_w;
+envs(:,2) = c_s;
+envs(:,3) = 3.8*ones(length(c_w),1);
+% which of the 7 .ffn's to model
+objs    = 1:10; 
+f_s     = 1e5;
+
+chirp.sigName  = 'TREXred.replica';%
+chirp.chirp = [1 31 f_s]; % start and end freq of chirp defines center and BW, last number is f_s
+runlen  = [20,800]; %length in meters, stops
+
+cd(home);
+dirMapDBFRM = generateDatabaseLsas(dirFRM,envs,ranges,rots,objs,chirp,runlen);
+dirm = 'C:\Users\halljj2\Desktop\TESTMATS';
 cd(dirm);
-%save('dirMapDBFRM.mat','dirMapDBFRM');
+save('dirMapDBFRM.mat','dirMapDBFRM');
+
 open('dirMapDBFRM.mat');
 cd(home);
 NT = [1 2 3];
