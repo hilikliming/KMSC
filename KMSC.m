@@ -14,7 +14,7 @@ function [ d_Y ] = KMSC( D, Y, ktype, rbf_var)
 % samples under M different hypotheses
 
 d_Y = zeros(size(Y,2),length(D));
-for m = length(D)-1
+for m = 1:length(D)-1
     T_m = D(m).D;           % Class m samples
     Bk  = D(length(D)).D;   % Background samples
     
@@ -23,7 +23,7 @@ for m = length(D)-1
     KBTm  = kernel(Bk,T_m,ktype,rbf_var);
     KBB   = kernel(Bk,Bk,ktype,rbf_var);
     
-    KTBTB = kernel([Tm B],[Tm B],ktype,rbf_var);
+    KTBTB = kernel([T_m Bk],[T_m Bk],ktype,rbf_var);
     
     [del_m,~,~] = svd(KTBTB);
     
@@ -48,12 +48,13 @@ for m = length(D)-1
     for q = 1:size(Y,2)
         y = Y(:,q);
         % For each sample y we need to calculate:
-        KTmBy = kernel([Tm Bk],y, ktype,rbf_var);
-        KTmy  = kernel(Tm,y, ktype,rbf_var);
-        KBy   = kernel(Bk,y, ktype,rbf_var);
+        KTmBy = kernel([T_m Bk],y*ones(1,size([T_m Bk],2)), ktype,rbf_var);
+        KTmy  = kernel(T_m,y*ones(1,size(T_m,2)), ktype,rbf_var);
+        KBy   = kernel(Bk,y*ones(1,size(Bk,2)), ktype,rbf_var);
         
         d_Y(q,m) = (norm(del_m'*KTmBy,'fro')^2-norm(B'*KBy,'fro')^2)...
             /(norm(del_m'*KTmBy,'fro')^2-[KTmy'*T KBy'*B]*Lm^(-1)*[T'*KTmy; B'*KBy]);
+        warning('off','last');
     end
     
 end

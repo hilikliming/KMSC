@@ -23,7 +23,7 @@ otherwise
 end
 
 % Centering kernel Matrix:
-oneM = 1./size(kout,1)*ones(size(kout));
-kout = (kout - oneM*kout - kout*oneM+ oneM*kout*oneM);
+
+kout = (kout - oneM*kour - kour*oneM+ oneM*kout*oneM);
 end
 

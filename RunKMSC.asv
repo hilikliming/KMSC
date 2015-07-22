@@ -126,27 +126,19 @@ open('r_Y.mat');
 open('t_Y.mat');
 cd(home);
 %% Running KMSC
-rbf_var = 30;
+rbf_var = 20;
 ktype = 'rbf';
 
 for m = 1:length(D)
     DD=[];
-    Dm=D(m);
     for j = 1:length(D(m))
-        DD = [DD Dm(j).D];
+        DD = [DD D(m).D(j).D];
     end
-    D(m).D=DD(:,randsample(size(DD,2),size(DD,1)));
+    D(m).D=DD;
 end
 
-
 d_Y = KMSC(D,Y,ktype,rbf_var);
-cd(dirm);
-save('d_Y.mat','d_Y');
-cd(home);
 
-cd(dirm);
-open('d_Y.mat');
-cd(home);
 %% Documenting Results
 gammas  = 0:1e-2:4.5;
 gammas  = [gammas, 20];
