@@ -1,4 +1,3 @@
-home = cd;
 %% Kernelized Matched Subspace Classifier
 % John Hall
 % Based off the work of H. Kwon and N. Nasrabadi in their 'Hyperpsectral 
@@ -45,8 +44,11 @@ home = cd;
 % 2) K(T_m,y)
 % 3) K(B,y)
 
-
+home = cd;
 %% Importing Training Data
+
+
+
 dirm = 'C:\Users\halljj2\Desktop\TESTMATS';
 above = '..\';
 cd(above);
@@ -55,48 +57,62 @@ cd(dirFRM);
 dirFRM = cd;
 
 % % Parameters for generateDatabaseLsas indicates environment conditions,
-% % ranges, and target rotations to be modeled
-% ranges = 10:5:40;
-% %water and sediment sound speeds
-% c_w = [1464,1530];
-% c_s = [1694,1694];
-% % rotations to model
-% rots = [0:20:80,270:20:350];
-% % environment parameters to model, water, sediment speed, interface elevation
+%
+% ranges = 10:5:40;              % ranges to model
+% rots   = [0:20:80,270:20:350]; % rotations to model
+%
+% c_w = [1464,1530]; % water speed,
+% c_s = [1694,1694]; % sediment speed,
+%
 % envs      = zeros(length(c_w),3);
-% envs(:,1) = c_w;
-% envs(:,2) = c_s;
-% envs(:,3) = 3.8*ones(length(c_w),1);
-% % which of the 7 .ffn's to model
-% objs    = 1:10; 
-% f_s     = 1e5;
+% envs(:,1) = c_w;                     
+% envs(:,2) = c_s;                     
+% envs(:,3) = 3.8*ones(length(c_w),1); %interface elevation
 % 
-% chirp.sigName  = 'TREXred.replica';%
-% chirp.chirp = [1 31 f_s]; % start and end freq of chirp defines center and BW, last number is f_s
+% objs    = 1:10;  % Which of the 10 .ffn's to model
+% f_s     = 1e5;   % Modeled Sample frequency (F_s for TREXred.replica)
+% chirp.sigName     = 'TREXred.replica';%
+% chirp.chirp       = [1 31 f_s]; % start and end freq
 % runlen  = [20,800]; %length in meters, stops
-% 
 % cd(home);
 % dirMapDBFRM = generateDatabaseLsas(dirFRM,envs,ranges,rots,objs,chirp,runlen);
 % dirm = 'C:\Users\halljj2\Desktop\TESTMATS';
  cd(dirm);
 % save('dirMapDBFRM.mat','dirMapDBFRM');
 
-open('dirMapDBFRM.mat');
+load('dirMapDBFRM.mat');
 cd(home);
 
 %% Collecting TRAINING Data
-% NT = [1 2 3];
-% T = [4 5 6 7 8 9 10];
 % stops = 800;
 % D = struct([]);
 % 
-% D(1).D = getTrainingSamples(dirMapDBFRM(:,NT,:,:), stops);
-% D(2).D = getTrainingSamples(dirMapDBFRM(:, T,:,:), stops);
-% %D(3).D = getTrainingSamples(dirMapDBFRM(:,BK,:,:), stops);
+% Dm= getTrainingSamples(dirMapDBFRM(:,1,:,:), stops);    %alcyl2ft
+% D(1).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,2,:,:), stops);   %alcyl3ft
+% D(2).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,3,:,:), stops);   %alpipe
+% D(3).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,4,:,:), stops);   %aluxo
+% D(4).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,5,:,:), stops);   %bullet105air
+% D(5).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,6,:,:), stops);   %bullet105h2o
+% D(6).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,7,:,:), stops);   %howcapair
+% D(7).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,8,:,:), stops);   %howcaph2o
+% D(8).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,9,:,:), stops);   %hownocap
+% D(9).D = Dm.D;
+% Dm = getTrainingSamples(dirMapDBFRM(:,10,:,:), stops);  %ssuxo
+% D(10).D = Dm.D;
+% 
 % cd(dirm);
-% save('D.mat','D')
+% save('D.mat','D');
+
 cd(dirm);
-open('D.mat');
+load('D.mat');
 cd(home);
 %% Importing Testing Data
 % realTarg = {'TARGET17','TARGET7','TARGET16','TARGET20','TARGET21',...
@@ -114,30 +130,35 @@ cd(home);
 %         0,0,15,0,25,30,0,0;  ...% 9)  Target 28 howcaph20      T
 %         5,0,0,0,25,30,0,40];    % 10) Target 8  hownocap        T   
 % eps = 110;
-% [Y, t_Y, r_Y ] = realACfetchTREX(realTarg,stops,eps,rngs);
+% [Y, t_Y, r_Y, Bkgd ] = realACfetchTREX(realTarg,stops,eps,rngs);
 % cd(dirm)
 % save('Y.mat','Y');
 % save('t_Y.mat','t_Y');
 % save('r_Y.mat','r_Y');
+% save('Bkgd.mat','Bkgd');
 
 cd(dirm);
-open('Y.mat');
-open('r_Y.mat');
-open('t_Y.mat');
+load('Y.mat');
+load('r_Y.mat');
+load('t_Y.mat');
+load('Bkgd.mat');
 cd(home);
 %% Running KMSC
 rbf_var = 30;
 ktype = 'rbf';
 
+D(length(D)+1).D = Bkgd;
+
+%Subsampling
 for m = 1:length(D)
-    DD=[];
-    Dm=D(m);
-    for j = 1:length(D(m))
-        DD = [DD Dm(j).D];
-    end
-    D(m).D=DD(:,randsample(size(DD,2),size(DD,1)));
+    DD=D(m).D;
+    D(m).D=DD(:,randsample(size(DD,2),3*size(DD,1)));
 end
 
+%First Testing on only 10 m data
+Y = Y(:,r_Y==10);
+t_Y = t_Y(r_Y==10);
+r_Y = r_Y(r_Y==10);
 
 d_Y = KMSC(D,Y,ktype,rbf_var);
 cd(dirm);
@@ -145,7 +166,7 @@ save('d_Y.mat','d_Y');
 cd(home);
 
 cd(dirm);
-open('d_Y.mat');
+load('d_Y.mat');
 cd(home);
 %% Documenting Results
 gammas  = 0:1e-2:4.5;
@@ -156,6 +177,6 @@ origT = t_Y;
 t_Y(t_Y==1|t_Y==2|t_Y==3)= 0;
 t_Y(t_Y~=0)= 1;
 
-[gamk, Pcc, Pfa] = formROCS(d_Y,t_Y,gammas);
+[gamk, Pcc, Pfa, m_Y] = formROCS(d_Y,origT,gammas,dirm,'KMSC');
 
 

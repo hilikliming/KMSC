@@ -1,4 +1,4 @@
-function [ usableAsps ] = extractAC( filtered_run,eps,sigN,upperf,f_s,stopbins )
+function [ usableAsps, Bk ] = extractAC( filtered_run,eps,sigN,upperf,f_s,stopbins )
 %% Input
 % dir - directory to find Target Data
 % filtered_run - matrix containing filtered run from Pond or TREX to be
@@ -9,6 +9,8 @@ function [ usableAsps ] = extractAC( filtered_run,eps,sigN,upperf,f_s,stopbins )
 %% Output
 % useableAsps - AC matrix for aspects with meaningful power (absolute sum
 % greater than eps
+
+% Bk -- AC matrix for Background aspects collected from this object run...
 run = double(filtered_run);
 len = size(run,2);
 
@@ -38,29 +40,29 @@ end
 wid = 60;
 
 % Select enhanced aspects in the in center (the 'norm' ones all have this)
-if(strcmp(eps,'ctr'))
-    ctr = floor(ctr*stopbins/size(run,2));
-    AC = aAC(:,ctr-wid:ctr+wid-1);
-else
-    if(strcmp(eps,'pwr'))% Selecting top aspects by ordering power
-        [~, order] = sort(sum(abs(aAC).^2,1));
-        order = fliplr(order);
-        order = order(1:floor(length(order)*0.650));
-        AC = aAC(:,order);
-    else
-        if(strcmp(eps,'var'))
-            
-            [~, order] = sort(var(normc(aAC),0,1));
-            order = fliplr(order);
-            order = order(1:floor(length(order)*0.1450));
-            AC = aAC(:,order);
-        else
-            % Selecting top aspects by relative power
-            AC = aAC(:,sum(abs(aAC).^2,1)>eps);%*max(sum(abs(aAC).^2,1)));
-        end
-    end
+% for AC and lowest power observations for Bk
+
+switch eps
+   case 'ctr'
+       ctr = floor(ctr*stopbins/size(run,2));
+       AC = aAC(:,ctr-wid:ctr+wid-1);
+   case 'pwr'
+       [~, order] = sort(sum(abs(aAC).^2,1));
+       order = fliplr(order);
+       order = order(1:floor(length(order)*0.650));
+       AC = aAC(:,order);
+   case 'var'
+       [~, order] = sort(var(normc(aAC),0,1));
+       order = fliplr(order);
+       order = order(1:floor(length(order)*0.1450));
+       AC = aAC(:,order);
+   otherwise
+       % Selecting top aspects by hardlimiting power
+            AC = aAC(:,sum(abs(aAC).^2,1)>eps);
 end
 
+mP = mean(sum(abs(aAC).^2,1));
+Bk = aAC(:,sum(abs(aAC).^2,1)<1/4*mP);
 % If we accidentally lost everything with power thresholding... 
 if(size(AC,2)<floor(0.05*size(aAC,2)))
         [~, order] = sort(sum(abs(aAC).^2,1));
@@ -71,15 +73,20 @@ end
 
 % For each aspect, decimate frequency bins to desired signal length
 rAC = zeros(sigN,size(AC,2));
+rBk = zeros(sigN,size(Bk,2));
 
 for i = 1:size(AC,2)
-rAC(:,i) = abs(resample(AC(:,i),sigN,size(AC,1)))';
+    rAC(:,i) = abs(resample(AC(:,i),sigN,size(AC,1)))';
+end
+for i = 1:size(Bk,2)
+    rBk(:,i) = abs(resample(Bk(:,i),sigN,size(Bk,1)))';
 end
 % Simulating Sparser stopping by taking every tenth aspect with a wobble of
 % +-5 stops
 rAC = reSort(rAC,12,4);
-
+rBk = reSort(rBk,12,4);
 usableAsps = normc(rAC);%20*log10(abs(normc(rAC)));%
+Bk = normc(rBk);
 end
 
 function [ctrStop]=findArcCtr(run,thresh)

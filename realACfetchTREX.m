@@ -1,9 +1,10 @@
-function [ Y, t_Y, r_Y ] = realACfetchTREX( realTarg,stops,eps,rngs )
+function [ Y, t_Y, r_Y, Bkgd ] = realACfetchTREX( realTarg,stops,eps,rngs )
 home     = cd;
 targetID = 1;
 Y   = []; 
 t_Y = [];
 r_Y = [];
+Bkgd = [];
 upperF  = 31e3; % Chosen based on SERDP MR-1665-FR Final Report
 f_s     = 100e3;% determined experimentally...
 sig_N   = 310;  % (0-31 kHz)
@@ -30,10 +31,11 @@ for tag = realTarg
                     %load('APL_VLA_1_30kHz.mat');
                     %xmit = decimate(data_V,10);
                     pings = ob.new_data';%PulseCompress(ob.new_data',xmit,f_s,0);%
-                    AC = extractAC(pings,eps,sig_N,upperF,f_s,stops);
+                    [AC, Bk] = extractAC(pings,eps,sig_N,upperF,f_s,stops);
                     Y   = [Y, AC];
                     t_Y = [t_Y', burysign*targetID*ones(size(AC,2),1)']';
                     r_Y = [r_Y', rng*ones(size(AC,2),1)']';
+                    Bkgd = [Bkgd, Bk];
                     cd(here);
                 end
             end
