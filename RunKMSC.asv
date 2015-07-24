@@ -144,7 +144,7 @@ load('t_Y.mat');
 load('Bkgd.mat');
 cd(home);
 %% Running KMSC
-rbf_var = 0.3;
+rbf_var = 30;
 ktype = 'rbf';
 
 D(length(D)+1).D = Bkgd;
@@ -157,9 +157,9 @@ end
 
 %First Testing on only Training, them on 10 m TREX data
 Y =[]; t_Y = [];
-for m = 1:length(D)
+for m = 1:length(D)-1
     DD=D(m).D;
-    DD=DD(:,randsample(size(DD,2),ceil(size(DD,1))));
+    DD=DD(:,randsample(size(DD,2),ceiling0.05*size(DD,1)));
     Y =[Y DD];
     t_Y = [t_Y; m*ones(size(DD,2),1)];
 end
@@ -168,18 +168,7 @@ end
 %t_Y = t_Y(r_Y==10);
 %r_Y = r_Y(r_Y==10);
 
-
-lowf   = 11;
-highf  = 305;
-
-% Trimming to frequency bins of interest...
-Y = Y(lowf:highf,:);
-for i = 1:length(D)
-    DD = D(i).D;
-    D(i).D = DD(lowf:highf,:);
-end
-per= 0.95;
-d_Y = KMSC(D,Y,ktype,rbf_var,per);
+d_Y = KMSC(D,Y,ktype,rbf_var);
 cd(dirm);
 save('d_Y.mat','d_Y');
 cd(home);
@@ -188,12 +177,12 @@ cd(dirm);
 load('d_Y.mat');
 cd(home);
 %% Documenting Results
-gammas  = -4.5:1e-2:4.5;
+gammas  = 0:1e-2:4.5;
 gammas  = [gammas, 20];
 
 % First 3 are alcyl2ft, alcycl3ft, alpipe
 origT = t_Y;
-t_Y(t_Y==1|t_Y==2|t_Y==3|t_Y==11)= 0;
+t_Y(t_Y==1|t_Y==2|t_Y==3)= 0;
 t_Y(t_Y~=0)= 1;
 
 [gamk, Pcc, Pfa, m_Y] = formROCS(d_Y,origT,gammas,dirm,'KMSC');
