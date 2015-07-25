@@ -49,6 +49,9 @@ for m = 1:length(D)
     %Only taking top Eigenvectors
     del_m = del_m/(delm.^(1/2)); %dividing out square root of eigenvalue
     del_m = del_m(:,1:nBT);
+    
+    T = T/eT.^(1/2);
+    B = B/eB.^(1/2);
     T = T(:,1:nT);
     B = B(:,1:nB);
     
