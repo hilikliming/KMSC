@@ -62,7 +62,7 @@ switch eps
 end
 
 mP = mean(sum(abs(aAC).^2,1));
-Bk = aAC(:,sum(abs(aAC).^2,1)<1/4*mP);
+Bk = aAC(:,sum(abs(aAC).^2,1)<1/20*mP);
 % If we accidentally lost everything with power thresholding... 
 if(size(AC,2)<floor(0.05*size(aAC,2)))
         [~, order] = sort(sum(abs(aAC).^2,1));

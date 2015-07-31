@@ -21,7 +21,7 @@ for tag = realTarg
             %xmit = decimate(data_V,10);
             pings = ob.new_data';%PulseCompress(ob.new_data',xmit,f_s,0);%
             AC = extractAC(pings,eps,sig_N,upperF,f_s,stops);
-            if(strfind(char(x(run)),'ROCK'))
+            if(strfind(char(x(run)),'ROCK3'))
                 Dclutter = [Dclutter,AC];
             else
                 % Extracting AC template from filtered run

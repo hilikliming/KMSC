@@ -84,32 +84,56 @@ load('dirMapDBFRM.mat');
 cd(home);
 
 %% Collecting TRAINING Data
-% stops = 800;
-% D = struct([]);
-% 
-% Dm= getTrainingSamples(dirMapDBFRM(:,1,:,:), stops);    %alcyl2ft
-% D(1).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,2,:,:), stops);   %alcyl3ft
-% D(2).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,3,:,:), stops);   %alpipe
-% D(3).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,4,:,:), stops);   %aluxo
-% D(4).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,5,:,:), stops);   %bullet105air
-% D(5).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,6,:,:), stops);   %bullet105h2o
-% D(6).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,7,:,:), stops);   %howcapair
-% D(7).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,8,:,:), stops);   %howcaph2o
-% D(8).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,9,:,:), stops);   %hownocap
-% D(9).D = Dm.D;
-% Dm = getTrainingSamples(dirMapDBFRM(:,10,:,:), stops);  %ssuxo
-% D(10).D = Dm.D;
-% 
-% cd(dirm);
-% save('D.mat','D');
+ stops = 800;
+
+D = struct([]);
+
+Dm= getTrainingSamples(dirMapDBFRM(:,1,1,:), stops);    %alcyl2ft
+D(1).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,2,1,:), stops);   %alcyl3ft
+D(2).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,3,1,:), stops);   %alpipe
+D(3).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,4,1,:), stops);   %aluxo
+D(4).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,5,1,:), stops);   %bullet105air
+D(5).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,6,1,:), stops);   %bullet105h2o
+D(6).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,7,1,:), stops);   %howcapair
+D(7).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,8,1,:), stops);   %howcaph2o
+D(8).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,9,1,:), stops);   %hownocap
+D(9).D  = Dm.D;
+Dm = getTrainingSamples(dirMapDBFRM(:,10,1,:), stops);  %ssuxo
+D(10).D = Dm.D;
+
+
+% Trim to Frequencies of interest (1-31kHz)
+lowf   = 11;
+highf  = 305;
+for i = 1:length(D)
+    DD = D(i).D;
+    D(i).D = DD(lowf:highf,:);
+end
+
+for m = 1:length(D)
+    DD = D(m).D;
+    %Select representative bg vectors using kmeans
+    ncentres        = 3; %3  % used to be 3,5 but 5 is sometimes better
+    centres         = zeros(ncentres, size(DD,1));
+    options(1)      = 1;                % Prints out error values.
+    options(5)      = 1;
+    options(14)     = 100;               % Number of iterations.
+    % Train the centres from the data
+    [centres, options, post] = kmeans(centres, DD', options);
+    DD = centres';
+    D(m).D =DD;
+end
+
+cd(dirm);
+save('D.mat','D');
 
 cd(dirm);
 load('D.mat');
@@ -144,31 +168,55 @@ load('t_Y.mat');
 load('Bkgd.mat');
 cd(home);
 %% Running KMSC
-rbf_var = 30;
+rbf_var = 0.085;
 ktype = 'rbf';
 
-D(length(D)+1).D = Bkgd;
+D(length(D)+1).D = 0.3*normc(rand(size(Bkgd)));%+Bkgd;
+DD = D(length(D)+1).D
 
-%Subsampling Training
+targs = {'SOLID_AL_CYLINDER','AL_PIPE','AL_UXO_SHELL','STEEL_UXO_SHELL','REAL_UXO_SHELL','BLUE_UXO','MORTAR','ROCK2','ROCK1'};
+[Pond,tPond,~] = realACfetch0910(targs,stops,100);
+
+sdsz        = 100;
+PondPick    = [1,0,2,3,0,0,0,0,0,4,8];
+% Sub-sampling Training
+Dbin      = struct([]); 
+Dbin(1).D = []; 
+Dbin(2).D = []; 
+Dbin(3).D = [];
+
+Dbins       = [1,1,1,2,2,2,2,2,2,2,3];
+
 for m = 1:length(D)
+    if(PondPick(m)>0)
+        DP = Pond(:,tPond==PondPick(m));
+        DP = DP(:,randsample(size(DP,2),sdsz));
+        DP = DP(lowf:highf,:);
+    end
     DD=D(m).D;
-    D(m).D=DD(:,randsample(size(DD,2),3*size(DD,1)));
+    %DD= DD(:,randsample(size(DD,2),min([size(DD,2) size(DD,1)])));
+    D(m).D= [DD DP];
+    Dbin(Dbins(m)).D = [Dbin(Dbins(m)).D, DD,DP];
 end
 
 %First Testing on only Training, them on 10 m TREX data
-Y =[]; t_Y = [];
-for m = 1:length(D)-1
-    DD=D(m).D;
-    DD=DD(:,randsample(size(DD,2),ceiling0.05*size(DD,1)));
-    Y =[Y DD];
-    t_Y = [t_Y; m*ones(size(DD,2),1)];
-end
+% Y =[]; t_Y = [];
+% for m = 1:length(D)
+%     DD=D(m).D;
+%     DD=DD(:,randsample(size(DD,2),size(DD,1)));
+%     Y =[Y DD];
+%     t_Y = [t_Y; m*ones(size(DD,2),1)];
+% end
 
-%Y = Y(:,r_Y==10);
-%t_Y = t_Y(r_Y==10);
-%r_Y = r_Y(r_Y==10);
+Y = Y(:,r_Y==10);
+t_Y = t_Y(r_Y==10);
+r_Y = r_Y(r_Y==10);
 
-d_Y = KMSC(D,Y,ktype,rbf_var);
+Y = Y(lowf:highf,:);
+
+per= 0.75;
+
+d_Y = KMSC(D,Y,ktype,rbf_var,per);
 cd(dirm);
 save('d_Y.mat','d_Y');
 cd(home);
@@ -176,15 +224,19 @@ cd(home);
 cd(dirm);
 load('d_Y.mat');
 cd(home);
+
 %% Documenting Results
-gammas  = 0:1e-2:4.5;
+gammas  = 0:1e-4:2;
 gammas  = [gammas, 20];
 
 % First 3 are alcyl2ft, alcycl3ft, alpipe
 origT = t_Y;
-t_Y(t_Y==1|t_Y==2|t_Y==3)= 0;
+t_Y(t_Y==1|t_Y==2|t_Y==3|t_Y==11)= 0;
 t_Y(t_Y~=0)= 1;
 
-[gamk, Pcc, Pfa, m_Y] = formROCS(d_Y,origT,gammas,dirm,'KMSC');
+T  = [4,5,6,7,8,9,10];%[2];%
+NT = [1,2,3];%[1];%
 
+[gamk, Pcc, Pfa, m_Y] = formROCS(d_Y,origT,gammas,dirm,'KMSC',T,NT);
 
+res = [Pcc(gamk),Pfa(gamk)]

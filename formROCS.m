@@ -1,4 +1,4 @@
-function [ gamk, P_cc, P_fa, m_Y ] = formROCS(d_Y,t_Y,gammas,dirm,tag)
+function [ gamk, P_cc, P_fa, m_Y ] = formROCS(d_Y,t_Y,gammas,dirm,tag,T,NT)
 home = cd;
 % Initializing min discriminant value vector for K observations and a
 % decision vector m_P
@@ -7,8 +7,7 @@ jmin_T  = zeros(K,1);
 jmin_NT = zeros(K,1);
 
 m_Y = zeros(K,1);
-T  = [4,5,6,7,8,9,10];
-NT = [1,2,3];
+
 
 % Finding minimal value from UXO and non UXO families of classes
 for k = 1:K
@@ -57,7 +56,7 @@ hold on
 plot(jmin_NT(t_Y==0),jmin_T(t_Y==0),'go'); %NT samples
 %       % NT stats         % Target Stats
 plot(jmin_NT(t_Y==1),jmin_T(t_Y==1),'rx'); %T Sample
-plot((0:1e-2:1),gammas(gamk)*(0:1e-2:1)); %Decision Boundary
+plot((0:(gammas(2)-gammas(1)):1),gammas(gamk)*(0:(gammas(2)-gammas(1)):1)); %Decision Boundary
 hold off
 title([tag,' Decision Plane']);
 legend('{NT}','{T}');%legend('J_1','J_2','J_3','J_4');%legend('J_1','J_2','J_3','J_4','J_C');%
@@ -71,7 +70,7 @@ plot(P_fa,P_cc);%plot(P_faSVD,P_dSVD,P_faKSVD,P_dKSVD);%
 legend(tag);%legend('SVD','K-SVD');%
 tag1 = ['ROC for ',tag,' Tests'];
 title(tag1); xlabel('P_{FA} (%)'); ylabel('P_{CC} (%)');
-plot([P_fa(gamk), P_cc(gamk)],'o');
+plot(P_fa(gamk), P_cc(gamk),'o');
 axis([0, 1, 0, 1]);
 hold off
 cd(dirm);

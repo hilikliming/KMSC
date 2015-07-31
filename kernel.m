@@ -14,7 +14,7 @@ case 'rbf'
 case 'imq'
     for i = 1:size(matx1,2)
       for j = 1:size(matx2,2)
-            kout(i,j) = 1/sqrt(norm(matx1(:,i)-matx2(j,:))^2+1);
+            kout(i,j) = 1/sqrt(norm(matx1(:,i)-matx2(:,j))^2+1);
       end
     end
 case 'polynomial'
@@ -43,11 +43,13 @@ otherwise
 end
 
 % Centering kernel Matrix:
-if size(matx2,2)>1
-    oneM = 1./size(kout,2)*ones(size(kout));
+if size(kout,2)==size(kout,1)
+    oneM = 1./size(kout,2).*ones(size(kout,2)); % kout in R^(MxN)
     kout = (kout - oneM*kout - kout*oneM+ oneM*kout*oneM);
 else
-    kout = kout-ones(size(kout,1),1)*sum(kout);
+    for vec = 1:size(kout,2)
+        kout(:,vec) = kout(:,vec)-ones(size(kout(:,vec),1),1)*sum(kout(:,vec))/length(kout(:,vec));
+    end
 end
 
 end
